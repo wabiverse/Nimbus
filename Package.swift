@@ -16,7 +16,7 @@ let package = Package(
     // 🏃 Non-blocking, event-driven networking for Swift, used for custom executors.
     .package(url: "https://github.com/apple/swift-nio.git", from: "2.67.0"),
     // 🌌 Pixar's universal scene description for Swift, for building the metaverse.
-    .package(url: "https://github.com/wabiverse/SwiftUSD.git", from: "23.11.39"),
+    .package(url: "https://github.com/wabiverse/SwiftUSD.git", from: "23.11.40"),
   ],
   targets: [
     .executableTarget(

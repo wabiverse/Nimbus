@@ -1,5 +1,5 @@
 {
-  "originHash" : "b8301e00f0d2c0260c1ff9802636f9df2232905f8b68796f9b8000e36ab94daf",
+  "originHash" : "b0531a17b3a24bb699dcb729a5bb27aab17d6adbabb9cb4a0c0371b8fc0c55ab",
   "pins" : [
     {
       "identity" : "async-http-client",
@@ -258,8 +258,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/wabiverse/SwiftUSD.git",
       "state" : {
-        "revision" : "1eaa45df4087f11f8bb91c976e8bc73840a74a03",
-        "version" : "23.11.39"
+        "revision" : "4bff55bea032f716c378d6973053598b145609c0",
+        "version" : "23.11.40"
       }
     },
     {
