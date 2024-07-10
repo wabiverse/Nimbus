@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------
- * :: :  N  I  M  B  U  S  :                                     ::
+ * :: :  M  E  T  A  V  E  R  S  E  :                            ::
  * ----------------------------------------------------------------
  * This software is Licensed under the terms of the Apache License,
  * version 2.0 (the "Apache License") with the following additional
@@ -62,7 +62,7 @@ class UsdRoutes
     app.get
     { _ async in
       let prim = self.stage.getPrim(at: "/hello/world")
-      prim.SetActive(false)
+      prim.set(active: false)
       self.stage.save()
 
       return self.stage
@@ -71,7 +71,7 @@ class UsdRoutes
     app.get("hello")
     { _ async in
       let prim = self.stage.getPrim(at: "/hello/world")
-      prim.SetActive(true)
+      prim.set(active: true)
       self.stage.save()
 
       return self.stage
@@ -89,21 +89,22 @@ extension UsdStageRefPtr: AsyncResponseEncodable
   {
     let body: Response.Body
 
-    var result = std.string()
-    pointee.ExportToString(&result, false)
-    if !result.empty()
+    var result = ""
+    exportToString(&result)
+
+    if !result.isEmpty
     {
-      body = .init(string: String(result))
+      body = .init(string: result)
     }
     else
     {
       body = .empty
     }
-    let response = Response(
+
+    return Response(
       status: .ok,
       headers: request.headers,
       body: body
     )
-    return response
   }
 }
