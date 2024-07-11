@@ -68,30 +68,28 @@ public struct MQTTNimbusClient: Sendable
 
   public func run() async throws
   {
-    logger.info("Connecting to \(connection.topic)")
+    logger.info("connecting to: \(connection.topic)")
     do
     {
       try await setup()
+      logger.info("connected to: \(connection.topic)")
+      Task.detached
+      {
+        while true
+        {
+          prompt()
+          if let line = readLine()
+          {
+            try await sendMessage(line)
+          }
+        }
+      }
     }
     catch
     {
       closePromise.fail(MQTTNimbusClient.Error(kind: .lostConnection))
       try await mqttClient.shutdown()
-      return
-    }
-
-    logger.info("Connected to \(connection.topic)")
-
-    Task.detached
-    {
-      while true
-      {
-        prompt()
-        if let line = readLine()
-        {
-          try await sendMessage(line)
-        }
-      }
+      logger.info("error: \(error)")
     }
 
     do
@@ -106,11 +104,11 @@ public struct MQTTNimbusClient: Sendable
     catch
     {
       deleteCurrentLine()
-      logger.info("Error: \(error)")
+      logger.info("error: \(error)")
     }
   }
 
-  public func setup() async throws
+  public func setup(cleanSession: Bool = false) async throws
   {
     // connect, subscribe and publish joined message
     let publish = (topicName: topicName, payload: createPayload("Joined!"), qos: MQTTQoS.exactlyOnce, retain: false)
@@ -163,6 +161,10 @@ public struct MQTTNimbusClient: Sendable
     {
       guard packet.from != connection.username else { return }
       outputAndReplacePrompt("\(packet.from): \(packet.message)")
+    }
+    else
+    {
+      logger.info("recieved message but could not decode it.")
     }
   }
 

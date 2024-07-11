@@ -32,9 +32,12 @@ import Foundation
 
 public struct MQTTNimbusConnection: Sendable
 {
-  public var topic: String = "Metaverse"
-  public var username: String = "furby"
-  public var servername: String = "localhost"
+  private static let uuid = UUID().uuidString.lowercased()
+  private static let id = Self.uuid[Self.uuid.startIndex ... Self.uuid.index(Self.uuid.startIndex, offsetBy: 4)]
+
+  public var topic: String = "metaverse/chat"
+  public var username: String = "furby-\(id)"
+  public var servername: String = "broker.hivemq.com"
   public var port: Int = 1883
 
   public func run() async throws

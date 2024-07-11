@@ -15,7 +15,7 @@ let package = Package(
     .package(url: "https://github.com/vapor/vapor.git", from: "4.102.0"),
     // 🏃 Non-blocking, event-driven networking for Swift, used for custom executors.
     .package(url: "https://github.com/apple/swift-nio.git", from: "2.67.0"),
-    // Message queuing telemetry transport, for Pub<->Sub messaging between clients.
+    // 💬 Message queuing telemetry transport, for Pub<->Sub messaging between clients.
     .package(url: "https://github.com/swift-server-community/mqtt-nio", branch: "main"),
     // 🌌 Pixar's universal scene description for Swift, for building the metaverse.
     .package(url: "https://github.com/wabiverse/SwiftUSD.git", from: "23.11.41"),
