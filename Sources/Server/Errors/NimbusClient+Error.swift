@@ -32,9 +32,9 @@ import Foundation
 
 public extension MQTTNimbusClient
 {
-  struct Error: Swift.Error, CustomStringConvertible
+  struct Error: Swift.Error, CustomStringConvertible, Sendable
   {
-    public enum Kind: String
+    public enum Kind: String, Sendable
     {
       case lostConnection = "lost connection."
       case unclosableConnection = "unable to close connection."

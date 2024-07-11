@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------
- * :: :  N  I  M  B  U  S  :                                     ::
+ * :: :  M  E  T  A  V  E  R  S  E  :                            ::
  * ----------------------------------------------------------------
  * This software is Licensed under the terms of the Apache License,
  * version 2.0 (the "Apache License") with the following additional
@@ -30,15 +30,15 @@
 
 import Foundation
 
-public struct MQTTNimbusConnection
+public struct MQTTNimbusConnection: Sendable
 {
   public var topic: String = "Metaverse"
   public var username: String = "furby"
   public var servername: String = "localhost"
   public var port: Int = 1883
 
-  public func run() throws
+  public func run() async throws
   {
-    try MQTTNimbusClient(connection: self).run()
+    try await MQTTNimbusClient(connection: self).run()
   }
 }

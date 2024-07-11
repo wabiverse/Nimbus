@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------
- * :: :  N  I  M  B  U  S  :                                     ::
+ * :: :  M  E  T  A  V  E  R  S  E  :                            ::
  * ----------------------------------------------------------------
  * This software is Licensed under the terms of the Apache License,
  * version 2.0 (the "Apache License") with the following additional
@@ -28,6 +28,7 @@
  *  . x x x . o o o . x x x . : : : .    o  x  o    . : : : .
  * ---------------------------------------------------------------- */
 
+import PixarUSD
 import Vapor
 
 /// configures your application
@@ -35,9 +36,16 @@ public func configure(_ app: Application) async throws
 {
   // uncomment to serve files from /Public folder
   // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
-  
+
   let router = UsdRoutes()
-  
+
   // register routes
   try router.setup(app)
+
+  Task
+  {
+    // run mqtt client.
+    let client = MQTTNimbusConnection()
+    try await client.run()
+  }
 }

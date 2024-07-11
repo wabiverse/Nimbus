@@ -34,7 +34,7 @@ import Logging
 import MQTTNIO
 import NIO
 
-public struct MQTTNimbusClient
+public struct MQTTNimbusClient: Sendable
 {
   public let connection: MQTTNimbusConnection
   public let mqttClient: MQTTClient
@@ -66,24 +66,30 @@ public struct MQTTNimbusClient
     try mqttClient.syncShutdownGracefully()
   }
 
-  public func run() throws
+  public func run() async throws
   {
     logger.info("Connecting to \(connection.topic)")
-    let setupFuture = setup()
-    setupFuture.cascadeFailure(to: closePromise)
-    setupFuture.whenSuccess
-    { _ in
-      logger.info("Connected to \(connection.topic)")
+    do
+    {
+      try await setup()
+    }
+    catch
+    {
+      closePromise.fail(MQTTNimbusClient.Error(kind: .lostConnection))
+      try await mqttClient.shutdown()
+      return
+    }
 
-      DispatchQueue.global().async
+    logger.info("Connected to \(connection.topic)")
+
+    Task.detached
+    {
+      while true
       {
-        while true
+        prompt()
+        if let line = readLine()
         {
-          prompt()
-          if let line = readLine()
-          {
-            _ = sendMessage(line)
-          }
+          try await sendMessage(line)
         }
       }
     }
@@ -91,11 +97,11 @@ public struct MQTTNimbusClient
     do
     {
       // wait on closePromise
-      try closePromise.futureResult.wait()
+      try await closePromise.futureResult.get()
 
       // disconnect and shutdown
-      try mqttClient.disconnect().wait()
-      try mqttClient.syncShutdownGracefully()
+      try await mqttClient.disconnect()
+      try await mqttClient.shutdown()
     }
     catch
     {
@@ -104,19 +110,16 @@ public struct MQTTNimbusClient
     }
   }
 
-  public func setup() -> EventLoopFuture<Void>
+  public func setup() async throws
   {
     // connect, subscribe and publish joined message
-    mqttClient.connect(cleanSession: true).flatMap
-    { _ -> EventLoopFuture<Void> in
-      let subscription = MQTTSubscribeInfo(topicFilter: topicName, qos: .exactlyOnce)
-      return mqttClient.subscribe(to: [subscription]).map { _ in }
-    }
-    .flatMap
-    { _ in
-      addListeners()
-      return sendMessage("Joined!")
-    }
+    let publish = (topicName: topicName, payload: createPayload("Joined!"), qos: MQTTQoS.exactlyOnce, retain: false)
+    try await mqttClient.connect(cleanSession: true, will: publish)
+
+    let subscription = MQTTSubscribeInfo(topicFilter: topicName, qos: .exactlyOnce)
+    _ = try await mqttClient.subscribe(to: [subscription])
+
+    addListeners()
   }
 
   public func addListeners()
@@ -141,12 +144,17 @@ public struct MQTTNimbusClient
     }
   }
 
-  public func sendMessage(_ message: String) -> EventLoopFuture<Void>
+  public func createPayload(_ message: String) -> ByteBuffer
   {
     let packet = MQTTNimbusPacket(from: connection.username, message: message)
     var buffer = ByteBufferAllocator().buffer(capacity: 0)
     try? JSONEncoder().encode(packet, into: &buffer)
-    return mqttClient.publish(to: topicName, payload: buffer, qos: .exactlyOnce)
+    return buffer
+  }
+
+  public func sendMessage(_ message: String) async throws
+  {
+    try await mqttClient.publish(to: topicName, payload: createPayload(message), qos: .exactlyOnce)
   }
 
   public func receiveMessage(_ buffer: ByteBuffer)

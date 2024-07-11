@@ -42,12 +42,15 @@ class UsdRoutes: @unchecked Sendable
 
   public init()
   {
-    /* Setup all usd resources (python, plugins, resources). */
-    #if os(iOS) || os(visionOS) || os(tvOS) || os(watchOS)
-      Pixar.Bundler.shared.setup(.resources, installPlugins: true)
-    #else
-      Pixar.Bundler.shared.setup(.resources, installPlugins: false)
-    #endif
+    DispatchQueue.plugsMutatingLock.sync
+    {
+      /* Setup all usd resources (python, plugins, resources). */
+      #if os(iOS) || os(visionOS) || os(tvOS) || os(watchOS)
+        Pixar.Bundler.shared.setup(.resources, installPlugins: true)
+      #else
+        Pixar.Bundler.shared.setup(.resources, installPlugins: false)
+      #endif
+    }
 
     stage = Usd.Stage.createNew("HelloWorld", ext: .usd)
 
@@ -117,5 +120,6 @@ extension UsdStageRefPtr: AsyncResponseEncodable
 
 public extension DispatchQueue
 {
+  static let plugsMutatingLock = DispatchQueue(label: "plugs.lock.queue")
   static let stageMutatingLock = DispatchQueue(label: "stage.lock.queue")
 }
