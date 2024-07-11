@@ -36,9 +36,9 @@ import Vapor
  * upon visiting its various router urls in context, spitting
  * out the underlying Usd.Stage as a string in the body of each
  * of its 'get' request responses. */
-class UsdRoutes
+class UsdRoutes: @unchecked Sendable
 {
-  let stage: UsdStageRefPtr
+  private let stage: UsdStageRefPtr
 
   public init()
   {
@@ -57,22 +57,28 @@ class UsdRoutes
     stage.save()
   }
 
+  func togglePrim(active: Bool, atPath primPath: String = "/hello/world")
+  {
+    DispatchQueue.stageMutatingLock.sync
+    {
+      let prim = self.stage.getPrim(at: primPath)
+      prim.set(active: active)
+      self.stage.save()
+    }
+  }
+
   func setup(_ app: Application) throws
   {
     app.get
     { _ async in
-      let prim = self.stage.getPrim(at: "/hello/world")
-      prim.set(active: false)
-      self.stage.save()
+      self.togglePrim(active: false)
 
       return self.stage
     }
 
     app.get("hello")
     { _ async in
-      let prim = self.stage.getPrim(at: "/hello/world")
-      prim.set(active: true)
-      self.stage.save()
+      self.togglePrim(active: true)
 
       return self.stage
     }
@@ -90,7 +96,7 @@ extension UsdStageRefPtr: AsyncResponseEncodable
     let body: Response.Body
 
     var result = ""
-    exportToString(&result)
+    exportToString(&result, addSourceFileComment: false)
 
     if !result.isEmpty
     {
@@ -107,4 +113,9 @@ extension UsdStageRefPtr: AsyncResponseEncodable
       body: body
     )
   }
+}
+
+public extension DispatchQueue
+{
+  static let stageMutatingLock = DispatchQueue(label: "stage.lock.queue")
 }
