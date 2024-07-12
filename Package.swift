@@ -22,11 +22,26 @@ let package = Package(
     .package(url: "https://github.com/apple/swift-nio.git", from: "2.67.0"),
     // 💬 Message queuing telemetry transport, for Pub<->Sub messaging between clients.
     .package(url: "https://github.com/swift-server-community/mqtt-nio", revision: "b56887a"),
+    // 🦟 Eclipse's mosquitto, an open source mqtt broker for swift.
+    .package(url: "https://github.com/wabiverse/swift-mosquitto.git", revision: "5873a40"),
     // 🌌 Pixar's universal scene description for Swift, for building the metaverse.
     .package(url: "https://github.com/wabiverse/SwiftUSD.git", from: "23.11.41"),
   ],
   targets: [
     .target(name: "NimbusModels"),
+    .target(
+      name: "NimbusBroker",
+      dependencies: [
+        .product(name: "Vapor", package: "vapor"),
+        .product(name: "NIOCore", package: "swift-nio"),
+        .product(name: "NIOPosix", package: "swift-nio"),
+        .product(name: "MQTTNIO", package: "mqtt-nio"),
+        .product(name: "SwiftMosquitto", package: "swift-mosquitto"),
+        .product(name: "PixarUSD", package: "SwiftUSD"),
+        .target(name: "NimbusModels"),
+      ],
+      swiftSettings: swiftSettings
+    ),
     .target(
       name: "NimbusClient",
       dependencies: [
@@ -48,6 +63,7 @@ let package = Package(
         .product(name: "MQTTNIO", package: "mqtt-nio"),
         .product(name: "PixarUSD", package: "SwiftUSD"),
         .target(name: "NimbusClient"),
+        .target(name: "NimbusBroker")
       ],
       swiftSettings: swiftSettings
     ),

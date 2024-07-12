@@ -28,7 +28,9 @@
  *  . x x x . o o o . x x x . : : : .    o  x  o    . : : : .
  * ---------------------------------------------------------------- */
 
+#if canImport(Darwin)
 import Darwin
+#endif /* canImport(Darwin) */
 import Foundation
 import Logging
 import MQTTNIO
