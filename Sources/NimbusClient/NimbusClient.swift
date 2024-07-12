@@ -34,6 +34,8 @@ import Logging
 import MQTTNIO
 import NIO
 
+@_exported import NimbusModels
+
 public struct MQTTNimbusClient: Sendable
 {
   public let connection: MQTTNimbusConnection
@@ -108,7 +110,7 @@ public struct MQTTNimbusClient: Sendable
     }
   }
 
-  public func setup(cleanSession: Bool = false) async throws
+  public func setup(cleanSession _: Bool = false) async throws
   {
     // connect, subscribe and publish joined message
     let publish = (topicName: topicName, payload: createPayload("Joined!"), qos: MQTTQoS.exactlyOnce, retain: false)
@@ -184,5 +186,13 @@ public struct MQTTNimbusClient: Sendable
     deleteCurrentLine()
     logger.info("\(string)")
     prompt()
+  }
+}
+
+public extension MQTTNimbusConnection
+{
+  func run() async throws
+  {
+    try await MQTTNimbusClient(connection: self).run()
   }
 }

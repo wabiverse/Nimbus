@@ -30,6 +30,7 @@
 
 import PixarUSD
 import Vapor
+import NimbusClient
 
 /// configures your application
 public func configure(_ app: Application) async throws
@@ -37,10 +38,8 @@ public func configure(_ app: Application) async throws
   // uncomment to serve files from /Public folder
   // app.middleware.use(FileMiddleware(publicDirectory: app.directory.publicDirectory))
 
-  let router = UsdRoutes()
-
-  // register routes
-  try router.setup(app)
+  // register all server controllers.
+  try app.register(collection: HelloWorldController())
 
   Task
   {

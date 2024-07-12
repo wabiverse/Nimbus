@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------
- * :: :  N  I  M  B  U  S  :                                     ::
+ * :: :  M  E  T  A  V  E  R  S  E  :                            ::
  * ----------------------------------------------------------------
  * This software is Licensed under the terms of the Apache License,
  * version 2.0 (the "Apache License") with the following additional
@@ -34,4 +34,10 @@ public struct MQTTNimbusPacket: Codable
 {
   public let from: String
   public let message: String
+
+  public init(from username: String, message: String)
+  {
+    from = username
+    self.message = message
+  }
 }

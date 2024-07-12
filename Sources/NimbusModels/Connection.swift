@@ -33,15 +33,21 @@ import Foundation
 public struct MQTTNimbusConnection: Sendable
 {
   private static let uuid = UUID().uuidString.lowercased()
-  private static let id = Self.uuid[Self.uuid.startIndex ... Self.uuid.index(Self.uuid.startIndex, offsetBy: 4)]
+  public static let id = Self.uuid[Self.uuid.startIndex ... Self.uuid.index(Self.uuid.startIndex, offsetBy: 4)]
 
-  public var topic: String = "metaverse/chat"
-  public var username: String = "furby-\(id)"
-  public var servername: String = "broker.hivemq.com"
-  public var port: Int = 1883
+  public var topic: String
+  public var username: String
+  public var servername: String
+  public var port: Int
 
-  public func run() async throws
+  public init(topic: String = "metaverse/chat",
+              username: String = "furby-\(Self.id)",
+              servername: String = "broker.hivemq.com",
+              port: Int = 1883)
   {
-    try await MQTTNimbusClient(connection: self).run()
+    self.topic = topic
+    self.username = username
+    self.servername = servername
+    self.port = port
   }
 }

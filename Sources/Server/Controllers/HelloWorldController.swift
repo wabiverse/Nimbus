@@ -36,21 +36,18 @@ import Vapor
  * upon visiting its various router urls in context, spitting
  * out the underlying Usd.Stage as a string in the body of each
  * of its 'get' request responses. */
-class UsdRoutes: @unchecked Sendable
+public class HelloWorldController: RouteCollection, @unchecked Sendable
 {
   private let stage: UsdStageRefPtr
 
   public init()
   {
-    DispatchQueue.plugsMutatingLock.sync
-    {
-      /* Setup all usd resources (python, plugins, resources). */
-      #if os(iOS) || os(visionOS) || os(tvOS) || os(watchOS)
-        Pixar.Bundler.shared.setup(.resources, installPlugins: true)
-      #else
-        Pixar.Bundler.shared.setup(.resources, installPlugins: false)
-      #endif
-    }
+    /* Setup all usd resources (python, plugins, resources). */
+    #if os(iOS) || os(visionOS) || os(tvOS) || os(watchOS)
+      Pixar.Bundler.shared.setup(.resources, installPlugins: true)
+    #else
+      Pixar.Bundler.shared.setup(.resources, installPlugins: false)
+    #endif
 
     stage = Usd.Stage.createNew("HelloWorld", ext: .usd)
 
@@ -60,30 +57,40 @@ class UsdRoutes: @unchecked Sendable
     stage.save()
   }
 
-  func togglePrim(active: Bool, atPath primPath: String = "/hello/world")
+  public func boot(routes: RoutesBuilder) throws
+  {
+    let hello = routes.grouped("hello")
+    hello.get(use: index)
+
+    hello.group("world")
+    { world in
+      world.get(use: show)
+    }
+  }
+
+  @Sendable
+  public func index(req _: Request) async throws -> UsdStageRefPtr
+  {
+    togglePrim(active: false)
+
+    return stage
+  }
+
+  @Sendable
+  public func show(req _: Request) async throws -> UsdStageRefPtr
+  {
+    togglePrim(active: true)
+
+    return stage
+  }
+
+  private func togglePrim(active: Bool, atPath primPath: String = "/hello/world")
   {
     DispatchQueue.stageMutatingLock.sync
     {
       let prim = self.stage.getPrim(at: primPath)
       prim.set(active: active)
       self.stage.save()
-    }
-  }
-
-  func setup(_ app: Application) throws
-  {
-    app.get
-    { _ async in
-      self.togglePrim(active: false)
-
-      return self.stage
-    }
-
-    app.get("hello")
-    { _ async in
-      self.togglePrim(active: true)
-
-      return self.stage
     }
   }
 }
@@ -120,6 +127,5 @@ extension UsdStageRefPtr: AsyncResponseEncodable
 
 public extension DispatchQueue
 {
-  static let plugsMutatingLock = DispatchQueue(label: "plugs.lock.queue")
   static let stageMutatingLock = DispatchQueue(label: "stage.lock.queue")
 }
